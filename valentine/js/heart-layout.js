@@ -109,119 +109,62 @@ const HeartLayout = {
     },
     
     /**
-     * Generate photo positions with varying sizes
+     * Generate perfect heart positions using a deterministic hardcoded template
      */
-    generatePhotoPositions() {
+    generatePhotoPositions(availablePhotosCount = 20) {
+        // 20 perfectly curated relative positions forming a heart
+        // rx, ry: relative center coordinates (0.0 to 1.0)
+        // rw: relative width/height scale
+        const heartTemplate = [
+            { rx: 0.50, ry: 0.45, rw: 0.22 }, // 0. Center (Largest, main focus)
+            { rx: 0.30, ry: 0.38, rw: 0.18 }, // 1. Mid-Left inner
+            { rx: 0.70, ry: 0.38, rw: 0.18 }, // 2. Mid-Right inner
+            { rx: 0.35, ry: 0.18, rw: 0.16 }, // 3. Top-Left lobe
+            { rx: 0.65, ry: 0.18, rw: 0.16 }, // 4. Top-Right lobe
+            { rx: 0.50, ry: 0.25, rw: 0.16 }, // 5. Top Center dip
+            { rx: 0.20, ry: 0.28, rw: 0.15 }, // 6. Far Top-Left
+            { rx: 0.80, ry: 0.28, rw: 0.15 }, // 7. Far Top-Right
+            { rx: 0.15, ry: 0.45, rw: 0.14 }, // 8. Far Left edge
+            { rx: 0.85, ry: 0.45, rw: 0.14 }, // 9. Far Right edge
+            { rx: 0.40, ry: 0.58, rw: 0.18 }, // 10. Lower-Left inner
+            { rx: 0.60, ry: 0.58, rw: 0.18 }, // 11. Lower-Right inner
+            { rx: 0.25, ry: 0.60, rw: 0.15 }, // 12. Lower-Left outer
+            { rx: 0.75, ry: 0.60, rw: 0.15 }, // 13. Lower-Right outer
+            { rx: 0.50, ry: 0.72, rw: 0.18 }, // 14. Bottom center core
+            { rx: 0.35, ry: 0.75, rw: 0.14 }, // 15. Bottom-Left taper
+            { rx: 0.65, ry: 0.75, rw: 0.14 }, // 16. Bottom-Right taper
+            { rx: 0.43, ry: 0.83, rw: 0.12 }, // 17. Tip transition Left
+            { rx: 0.57, ry: 0.83, rw: 0.12 }, // 18. Tip transition Right
+            { rx: 0.50, ry: 0.90, rw: 0.15 }  // 19. Absolute Bottom tip
+        ];
+
         const positions = [];
-        const targetPhotos = 20; // More realistic target
-        const gridSize = 20; // Grid resolution for scanning
-        
-        // Create a grid of candidate positions
-        const candidates = [];
-        for (let i = 0; i < gridSize; i++) {
-            for (let j = 0; j < gridSize; j++) {
-                const x = (i / gridSize) * this.containerSize;
-                const y = (j / gridSize) * this.containerSize;
-                
-                // Check if this grid point is inside the heart
-                if (this.isInsideHeart(x, y)) {
-                    candidates.push({ x, y });
-                }
-            }
-        }
-        
-        // Shuffle candidates for randomness
-        for (let i = candidates.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-        }
-        
-        // Determine sizes for target number of photos
-        const photoSizes = [];
-        for (let i = 0; i < targetPhotos; i++) {
-            const rand = Math.random();
-            let cumulativeWeight = 0;
+        // Determine how many photos we actually have, up to 20
+        const actualCount = Math.min(availablePhotosCount, heartTemplate.length);
+
+        for (let i = 0; i < actualCount; i++) {
+            const tmpl = heartTemplate[i];
+            // Scale relative width to actual pixels based on container
+            const sizePx = this.containerSize * tmpl.rw;
             
-            for (const size of this.sizes) {
-                cumulativeWeight += size.weight;
-                if (rand <= cumulativeWeight) {
-                    photoSizes.push(size);
-                    break;
-                }
-            }
-        }
-        
-        // Sort by size (large first for better packing)
-        photoSizes.sort((a, b) => b.width - a.width);
-        
-        // Try to place each photo using grid candidates
-        for (const size of photoSizes) {
-            let placed = false;
-            
-            // Try each candidate position
-            for (const candidate of candidates) {
-                // Adjust position to try to center the photo
-                const x = candidate.x - size.width / 2;
-                const y = candidate.y - size.height / 2;
-                
-                // Ensure photo is within bounds
-                if (x < 0 || y < 0 || 
-                    x + size.width > this.containerSize || 
-                    y + size.height > this.containerSize) {
-                    continue;
-                }
-                
-                // Check if all four corners are inside heart
-                const corners = [
-                    [x + size.width * 0.2, y + size.height * 0.2],
-                    [x + size.width * 0.8, y + size.height * 0.2],
-                    [x + size.width * 0.2, y + size.height * 0.8],
-                    [x + size.width * 0.8, y + size.height * 0.8]
-                ];
-                
-                const allCornersInside = corners.every(([cx, cy]) => 
-                    this.isInsideHeart(cx, cy)
-                );
-                
-                if (!allCornersInside) {
-                    continue;
-                }
-                
-                // Check for collisions with existing photos
-                let hasCollision = false;
-                const margin = 8;
-                
-                for (const pos of positions) {
-                    if (this.rectanglesOverlap(
-                        x, y, size.width, size.height,
-                        pos.x, pos.y, pos.width, pos.height,
-                        margin
-                    )) {
-                        hasCollision = true;
-                        break;
-                    }
-                }
-                
-                if (!hasCollision) {
-                    positions.push({
-                        x,
-                        y,
-                        width: size.width,
-                        height: size.height,
-                        size: size.name,
-                        index: positions.length
-                    });
-                    placed = true;
-                    break;
-                }
-            }
-            
-            // If we couldn't place this photo, that's okay
-            // We'll have as many as we can fit
+            // Convert relative center (rx, ry) to absolute Top-Left (x, y) for CSS
+            const x = (tmpl.rx * this.containerSize) - (sizePx / 2);
+            const y = (tmpl.ry * this.containerSize) - (sizePx / 2);
+
+            positions.push({
+                x: x,
+                y: y,
+                width: sizePx,
+                height: sizePx,
+                size: 'medium', // Default size for compatibility
+                index: i,
+                zIndex: i === 0 ? 10 : 1 // Ensure center photo stays on top
+            });
         }
         
         this.positions = positions;
         console.log(`✓ Generated ${positions.length} photo positions in heart shape`);
+        return positions;
     },
     
     /**
