@@ -59,18 +59,24 @@
     max-width: 600px;
     aspect-ratio: 1;
     transform-style: preserve-3d;
-    transition: transform 0.1s ease-out;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
     will-change: transform;
     cursor: pointer;
     z-index: 1;
 }
 
-/* 3D Tilt Effect */
+/* Enhanced 3D Tilt Effect */
 .photo-card[data-tilt] {
-    transform: perspective(1000px) 
+    transform: perspective(1200px) 
                 rotateX(var(--rotate-x, 0deg)) 
                 rotateY(var(--rotate-y, 0deg))
+                scale(var(--scale, 1))
                 translateZ(0);
+}
+
+/* Smooth transitions when tilting */
+.photo-card.tilting {
+    transition: none;
 }
 
 /* ==================== Photo Inner ==================== */
@@ -80,11 +86,14 @@
     position: relative;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.15),
+        calc(var(--rotate-y, 0deg) * 1px) calc(var(--rotate-x, 0deg) * -1px) 30px rgba(255, 105, 180, 0.5);
     background: white;
     transform: translateZ(50px);
     border: 4px solid white;
+    transition: box-shadow 0.3s ease;
 }
 
 .photo-image {
@@ -103,20 +112,30 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-        var(--shine-angle, 45deg),
-        transparent 20%,
-        rgba(255, 255, 255, 0.4) 50%,
-        transparent 80%
-    );
+    background: 
+        radial-gradient(
+            circle at var(--shine-x, 50%) var(--shine-y, 50%),
+            rgba(255, 255, 255, 0.8) 0%,
+            rgba(255, 105, 180, 0.6) 20%,
+            rgba(138, 43, 226, 0.5) 40%,
+            rgba(75, 0, 130, 0.4) 60%,
+            transparent 80%
+        ),
+        linear-gradient(
+            var(--shine-angle, 45deg),
+            transparent 20%,
+            rgba(255, 255, 255, 0.5) 50%,
+            transparent 80%
+        );
     mix-blend-mode: overlay;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
 }
 
-.photo-card:hover .holographic-overlay {
-    opacity: 1;
+.photo-card:hover .holographic-overlay,
+.photo-card.tilting .holographic-overlay {
+    opacity: 0.9;
 }
 
 /* Rainbow reflection effect on edges */
@@ -127,22 +146,25 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(
-        var(--shine-angle, 45deg),
-        transparent,
-        rgba(255, 105, 180, 0.3),
-        rgba(138, 43, 226, 0.3),
-        rgba(75, 0, 130, 0.3),
-        transparent
-    );
+    background: 
+        radial-gradient(
+            circle at var(--shine-x, 50%) var(--shine-y, 50%),
+            rgba(255, 255, 255, 0.8) 0%,
+            rgba(255, 105, 180, 0.8) 15%,
+            rgba(138, 43, 226, 0.6) 30%,
+            rgba(75, 0, 130, 0.5) 45%,
+            rgba(0, 191, 255, 0.4) 60%,
+            transparent 75%
+        );
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
     pointer-events: none;
-    mix-blend-mode: screen;
+    mix-blend-mode: color-dodge;
 }
 
-.photo-card:hover .photo-inner::after {
-    opacity: 0.6;
+.photo-card:hover .photo-inner::after,
+.photo-card.tilting .photo-inner::after {
+    opacity: 0.85;
 }
 
 /* Shimmer glow effect */
@@ -153,14 +175,17 @@
     left: 0;
     width: 100%;
     height: 100%;
-    box-shadow: inset 0 0 30px rgba(255, 105, 180, 0.3);
+    box-shadow: 
+        inset 0 0 50px rgba(255, 105, 180, 0.4),
+        inset calc(var(--rotate-y, 0deg) * 2px) calc(var(--rotate-x, 0deg) * -2px) 30px rgba(138, 43, 226, 0.5);
     pointer-events: none;
     border-radius: 20px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease, box-shadow 0.1s ease;
 }
 
-.photo-card:hover .photo-inner::before {
+.photo-card:hover .photo-inner::before,
+.photo-card.tilting .photo-inner::before {
     opacity: 1;
 }
 

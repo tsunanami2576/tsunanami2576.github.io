@@ -6,8 +6,8 @@ const PhotoViewer = {
     currentPhoto: null,
     isOpen: false,
     
-    // Tilt settings
-    maxTilt: 15,
+    // Enhanced tilt settings
+    maxTilt: 25, // Increased from 15 for stronger effect
     
     // Elements
     viewer: null,
@@ -15,6 +15,7 @@ const PhotoViewer = {
     photoImage: null,
     photoTimestamp: null,
     backdrop: null,
+    holographicOverlay: null,
     
     /**
      * Initialize photo viewer
@@ -25,6 +26,7 @@ const PhotoViewer = {
         this.photoImage = this.viewer.querySelector('.photo-image');
         this.photoTimestamp = this.viewer.querySelector('.photo-timestamp');
         this.backdrop = this.viewer.querySelector('.viewer-backdrop');
+        this.holographicOverlay = this.viewer.querySelector('.holographic-overlay');
         
         this.attachEventHandlers();
     },
@@ -35,17 +37,26 @@ const PhotoViewer = {
     attachEventHandlers() {
         // Mouse move for tilt effect
         this.photoCard.addEventListener('mousemove', (e) => {
+            this.photoCard.classList.add('tilting');
             this.handleTilt(e);
         });
         
         // Touch move for mobile tilt
         this.photoCard.addEventListener('touchmove', (e) => {
             e.preventDefault();
+            this.photoCard.classList.add('tilting');
             this.handleTilt(e.touches[0]);
         });
         
         // Reset tilt on mouse leave
         this.photoCard.addEventListener('mouseleave', () => {
+            this.photoCard.classList.remove('tilting');
+            this.resetTilt();
+        });
+        
+        // Reset tilt on touch end
+        this.photoCard.addEventListener('touchend', () => {
+            this.photoCard.classList.remove('tilting');
             this.resetTilt();
         });
         
@@ -186,20 +197,28 @@ const PhotoViewer = {
         const xPercent = (x / rect.width - 0.5) * 2;
         const yPercent = (y / rect.height - 0.5) * 2;
         
-        // Calculate rotation
+        // Calculate rotation with stronger effect
         const rotateY = xPercent * this.maxTilt;
         const rotateX = -yPercent * this.maxTilt;
         
         // Calculate shine angle for holographic effect
         const shineAngle = Math.atan2(yPercent, xPercent) * 180 / Math.PI;
         
-        // Apply transforms
+        // Calculate shine position (0 to 100%)
+        const shineX = ((xPercent + 1) / 2) * 100;
+        const shineY = ((yPercent + 1) / 2) * 100;
+        
+        // Apply transforms with enhanced depth
         this.photoCard.style.setProperty('--rotate-x', `${rotateX}deg`);
         this.photoCard.style.setProperty('--rotate-y', `${rotateY}deg`);
         this.photoCard.style.setProperty('--shine-angle', `${shineAngle}deg`);
+        this.photoCard.style.setProperty('--shine-x', `${shineX}%`);
+        this.photoCard.style.setProperty('--shine-y', `${shineY}%`);
         
-        // Add tilting class for performance optimization
-        this.photoCard.classList.add('tilting');
+        // Enhanced scale effect for depth
+        const distance = Math.sqrt(xPercent * xPercent + yPercent * yPercent);
+        const scale = 1 + (distance * 0.02); // Subtle scale increase
+        this.photoCard.style.setProperty('--scale', scale);
     },
     
     /**
@@ -211,6 +230,10 @@ const PhotoViewer = {
         gsap.to(this.photoCard, {
             '--rotate-x': '0deg',
             '--rotate-y': '0deg',
+            '--shine-angle': '45deg',
+            '--shine-x': '50%',
+            '--shine-y': '50%',
+            '--scale': 1,
             duration: 0.5,
             ease: 'power2.out'
         });
