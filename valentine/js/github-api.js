@@ -167,6 +167,7 @@ const GitHubAPI = {
         }
         
         const metadataPath = `${config.photoPath}/photos.json`;
+        // photos is now an object, convert to JSON directly
         const content = JSON.stringify(photos, null, 2);
         
         await this.uploadFile(
@@ -183,7 +184,7 @@ const GitHubAPI = {
     async loadPhotosMetadata() {
         const config = Config.getConfig();
         if (!config) {
-            return [];
+            return {}; // Return empty object instead of array
         }
         
         try {
@@ -194,13 +195,25 @@ const GitHubAPI = {
             
             if (response.ok) {
                 const photos = await response.json();
-                // Add cache-busting to image URLs
-                return photos.map(photo => {
+                
+                // If photos is an array (old format), convert to object
+                if (Array.isArray(photos)) {
+                    const photoObj = {};
+                    photos.forEach((photo, index) => {
+                        if (photo) {
+                            photoObj[index] = photo;
+                        }
+                    });
+                    return photoObj;
+                }
+                
+                // photos is already an object, just add cache-busting to URLs
+                Object.values(photos).forEach(photo => {
                     if (photo && photo.url) {
                         photo.url = photo.url + (photo.url.includes('?') ? '&' : '?') + 't=' + Date.now();
                     }
-                    return photo;
                 });
+                return photos;
             }
             
             // Fallback to API with token if available
@@ -209,14 +222,25 @@ const GitHubAPI = {
                 const file = await this.getFile(metadataPath);
                 
                 if (file && file.content) {
-                    return JSON.parse(file.content);
+                    const photos = JSON.parse(file.content);
+                    // Convert array to object if needed
+                    if (Array.isArray(photos)) {
+                        const photoObj = {};
+                        photos.forEach((photo, index) => {
+                            if (photo) {
+                                photoObj[index] = photo;
+                            }
+                        });
+                        return photoObj;
+                    }
+                    return photos;
                 }
             }
             
-            return [];
+            return {};
         } catch (error) {
             console.error('Failed to load photos metadata:', error);
-            return [];
+            return {};
         }
     }
 };

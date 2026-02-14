@@ -3,7 +3,7 @@
  * Handles photo upload, storage, and display
  */
 const PhotoManager = {
-    photos: [],
+    photos: {}, // Changed from array to object to avoid sparse array issues
     currentUploadIndex: null,
     
     /**
@@ -134,7 +134,7 @@ const PhotoManager = {
                 filename
             };
             
-            // Add to photos array
+            // Add to photos object (not array, to avoid nulls)
             this.photos[this.currentUploadIndex] = photo;
             
             // Update metadata on GitHub
@@ -301,7 +301,7 @@ const PhotoManager = {
         try {
             this.showLoading('正在删除照片...');
             
-            // Remove from photos array
+            // Remove from photos object
             delete this.photos[index];
             
             // Update metadata on GitHub
@@ -341,10 +341,10 @@ const PhotoManager = {
             this.showLoading('正在加载照片...');
             
             const photos = await GitHubAPI.loadPhotosMetadata();
-            this.photos = photos;
+            this.photos = photos; // photos is now an object {index: photo}
             
             // Display all photos
-            photos.forEach(photo => {
+            Object.values(photos).forEach(photo => {
                 if (photo && photo.url) {
                     this.displayPhoto(photo);
                 }
@@ -352,8 +352,9 @@ const PhotoManager = {
             
             this.hideLoading();
             
-            if (photos.length > 0) {
-                this.showToast(`已加载 ${photos.length} 张照片`, 'success');
+            const photoCount = Object.keys(photos).length;
+            if (photoCount > 0) {
+                this.showToast(`已加载 ${photoCount} 张照片`, 'success');
             }
             
         } catch (error) {
