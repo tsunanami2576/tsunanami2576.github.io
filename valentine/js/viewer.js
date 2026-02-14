@@ -66,11 +66,13 @@ const PhotoViewer = {
             const rect = sourceElement.getBoundingClientRect();
             // 注意：GSAP 现在只动画外层的 Wrapper
             gsap.set(this.photoCardWrapper, {
-                x: rect.left,
-                y: rect.top,
+                left: rect.left,
+                top: rect.top,
                 width: rect.width,
                 height: rect.height,
-                opacity: 0
+                opacity: 0,
+                xPercent: 0,
+                yPercent: 0
             });
         }
         
@@ -84,15 +86,15 @@ const PhotoViewer = {
         
         tl.to(this.backdrop, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
         
-        // 居中显示，使用百分比和transform
-        const viewerCenterX = window.innerWidth / 2;
-        const viewerCenterY = window.innerHeight / 2;
+        // 居中显示，使用 50% + translate(-50%, -50%)
         const cardWidth = Math.min(window.innerWidth * 0.85, 500);
         const cardHeight = cardWidth * 1.25; // 宽高比1:1.25
         
         tl.to(this.photoCardWrapper, {
-            x: viewerCenterX - cardWidth / 2,
-            y: viewerCenterY - cardHeight / 2,
+            left: '50%',
+            top: '50%',
+            xPercent: -50,
+            yPercent: -50,
             width: cardWidth,
             height: cardHeight,
             opacity: 1,
