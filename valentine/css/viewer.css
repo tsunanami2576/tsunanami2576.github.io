@@ -106,42 +106,40 @@
     transition: opacity 0.2s ease;
 }
 
-.photo-card:hover .holographic-overlay,
-.photo-card.tilting .holographic-overlay {
+.photo-card-inner:hover .holographic-overlay {
     opacity: 0.9;
 }
 
 /* Rainbow reflection effect on edges */
-.photo-inner::after {
+.photo-card-inner::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: 
         radial-gradient(
             circle at var(--shine-x, 50%) var(--shine-y, 50%),
-            rgba(255, 255, 255, 0.8) 0%,
-            rgba(255, 105, 180, 0.8) 15%,
-            rgba(138, 43, 226, 0.6) 30%,
-            rgba(75, 0, 130, 0.5) 45%,
-            rgba(0, 191, 255, 0.4) 60%,
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(255, 105, 180, 0.4) 20%,
+            rgba(138, 43, 226, 0.3) 40%,
+            rgba(75, 0, 130, 0.2) 60%,
             transparent 75%
         );
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;
-    mix-blend-mode: color-dodge;
+    mix-blend-mode: overlay;
+    border-radius: 8px;
 }
 
-.photo-card:hover .photo-inner::after,
-.photo-card.tilting .photo-inner::after {
-    opacity: 0.85;
+.photo-card-inner:hover::after {
+    opacity: 0.7;
 }
 
 /* Shimmer glow effect */
-.photo-inner::before {
+.photo-card-inner::before {
     content: '';
     position: absolute;
     top: 0;
@@ -149,16 +147,15 @@
     width: 100%;
     height: 100%;
     box-shadow: 
-        inset 0 0 50px rgba(255, 105, 180, 0.4),
-        inset calc(var(--rotate-y, 0deg) * 2px) calc(var(--rotate-x, 0deg) * -2px) 30px rgba(138, 43, 226, 0.5);
+        inset 0 0 30px rgba(255, 105, 180, 0.3),
+        inset calc(var(--rotate-y, 0deg) * 1px) calc(var(--rotate-x, 0deg) * -1px) 20px rgba(138, 43, 226, 0.4);
     pointer-events: none;
-    border-radius: 20px;
+    border-radius: 8px;
     opacity: 0;
-    transition: opacity 0.2s ease, box-shadow 0.1s ease;
+    transition: opacity 0.2s ease, box-shadow 0.15s ease;
 }
 
-.photo-card:hover .photo-inner::before,
-.photo-card.tilting .photo-inner::before {
+.photo-card-inner:hover::before {
     opacity: 1;
 }
 
@@ -218,21 +215,13 @@
 }
 
 /* ==================== Enhanced Tilt Effects ==================== */
-.photo-card.tilting {
+.photo-card-inner.tilting {
     transition: none;
-}
-
-/* Edge highlights based on tilt direction */
-.photo-inner {
-    box-shadow: 
-        0 25px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.1),
-        calc(var(--rotate-y, 0deg) * 0.5) calc(var(--rotate-x, 0deg) * -0.5) 20px rgba(255, 105, 180, 0.3);
 }
 
 /* ==================== Mobile Optimizations ==================== */
 @media (max-width: 768px) {
-    .photo-card {
+    .photo-card-wrapper {
         width: 95vw;
         max-width: none;
     }
@@ -244,7 +233,7 @@
         padding: 0.4rem 0.8rem;
     }
     
-    .photo-inner {
+    .photo-card-inner {
         border-radius: 15px;
         border-width: 3px;
     }
@@ -258,7 +247,7 @@
         padding: 0.3rem 0.6rem;
     }
     
-    .photo-inner {
+    .photo-card-inner {
         border-radius: 12px;
         border-width: 2px;
     }
@@ -267,16 +256,16 @@
 /* ==================== Touch Device Optimizations ==================== */
 @media (hover: none) and (pointer: coarse) {
     /* Remove hover effects on touch devices */
-    .photo-card:hover .holographic-overlay,
-    .photo-card:hover .photo-inner::after,
-    .photo-card:hover .photo-inner::before {
+    .photo-card-inner:hover .holographic-overlay,
+    .photo-card-inner:hover::after,
+    .photo-card-inner:hover::before {
         opacity: 0;
     }
     
     /* Show effects on active state instead */
-    .photo-card:active .holographic-overlay,
-    .photo-card:active .photo-inner::after {
-        opacity: 0.8;
+    .photo-card-inner:active .holographic-overlay,
+    .photo-card-inner:active::after {
+        opacity: 0.6;
     }
 }
 
@@ -292,8 +281,8 @@
 }
 
 /* Hardware acceleration */
-.photo-card,
-.photo-inner,
+.photo-card-wrapper,
+.photo-card-inner,
 .holographic-overlay {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
