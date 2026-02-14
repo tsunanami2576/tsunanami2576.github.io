@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Valentine Photo Heart - 演示预览</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/heart.css">
+    <link rel="stylesheet" href="css/viewer.css">
+</head>
+<body>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <header class="page-header">
+            <h1 class="title">Our Memories ❤️</h1>
+            <p class="subtitle">演示模式 - 点击空白处"模拟"上传照片</p>
+        </header>
+        
+        <!-- Heart Photo Grid -->
+        <div id="heartContainer" class="heart-container">
+            <!-- Photos will be dynamically inserted here -->
+        </div>
+        
+        <!-- Info Button -->
+        <button id="infoBtn" class="settings-btn" title="使用说明" style="bottom: 5rem;">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M13,17h-2v-6h2V17z M13,9h-2V7h2V9z"/>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Photo Viewer -->
+    <div id="photoViewer" class="photo-viewer hidden">
+        <div class="viewer-backdrop"></div>
+        <div class="photo-card" data-tilt>
+            <div class="photo-inner">
+                <img src="" alt="" class="photo-image">
+                <div class="holographic-overlay"></div>
+                <div class="photo-timestamp"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- Demo Scripts -->
+    <script src="js/heart-layout.js"></script>
+    <script src="js/viewer.js"></script>
+    
+    <script>
+        // Demo mode - simplified version without GitHub integration
+        
+        // Sample photos from placeholder service
+        const SAMPLE_PHOTOS = [
+            'https://picsum.photos/seed/love1/400/400',
+            'https://picsum.photos/seed/love2/400/400',
+            'https://picsum.photos/seed/love3/400/400',
+            'https://picsum.photos/seed/love4/400/400',
+            'https://picsum.photos/seed/love5/400/400',
+            'https://picsum.photos/seed/love6/400/400',
+            'https://picsum.photos/seed/love7/400/400',
+            'https://picsum.photos/seed/love8/400/400',
+        ];
+        
+        let photoIndex = 0;
+        const photos = [];
+        
+        // Show toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            HeartLayout.init();
+            PhotoViewer.init();
+            
+            const container = document.getElementById('heartContainer');
+            
+            // Handle placeholder clicks
+            container.addEventListener('click', (e) => {
+                const placeholder = e.target.closest('.photo-placeholder');
+                if (placeholder) {
+                    const index = parseInt(placeholder.dataset.index);
+                    addDemoPhoto(index);
+                }
+                
+                // Handle photo clicks
+                const photoItem = e.target.closest('.photo-item');
+                if (photoItem) {
+                    const idx = parseInt(photoItem.dataset.index);
+                    const photo = photos[idx];
+                    if (photo) {
+                        PhotoViewer.show(photo);
+                    }
+                }
+            });
+            
+            // Info button
+            document.getElementById('infoBtn').addEventListener('click', () => {
+                showToast('这是演示模式。完整版本请打开 index.html 并配置 GitHub 存储。');
+            });
+            
+            showToast('💡 演示模式：点击 + 号添加示例照片');
+        });
+        
+        // Add demo photo
+        function addDemoPhoto(index) {
+            if (photoIndex >= SAMPLE_PHOTOS.length) {
+                showToast('演示照片已用完！完整版本支持无限上传。');
+                return;
+            }
+            
+            const photo = {
+                url: SAMPLE_PHOTOS[photoIndex],
+                timestamp: new Date().toISOString(),
+                displayDate: formatDate(new Date()),
+                index: index
+            };
+            
+            photoIndex++;
+            photos[index] = photo;
+            
+            displayPhoto(photo);
+            showToast('✓ 照片已添加！点击照片查看详情。');
+        }
+        
+        // Display photo
+        function displayPhoto(photo) {
+            const container = document.getElementById('heartContainer');
+            const placeholder = container.querySelector(`[data-index="${photo.index}"]`);
+            
+            if (placeholder) {
+                const position = HeartLayout.getPosition(photo.index);
+                
+                const photoItem = document.createElement('div');
+                photoItem.className = `photo-item photo-${position.size}`;
+                photoItem.style.left = `${position.x}px`;
+                photoItem.style.top = `${position.y}px`;
+                photoItem.dataset.index = photo.index;
+                
+                const img = document.createElement('img');
+                img.src = photo.url;
+                img.alt = photo.displayDate;
+                
+                photoItem.appendChild(img);
+                container.replaceChild(photoItem, placeholder);
+            }
+        }
+        
+        // Format date
+        function formatDate(date) {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+    </script>
+</body>
+</html>

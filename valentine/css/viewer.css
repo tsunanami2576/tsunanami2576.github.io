@@ -1,0 +1,302 @@
+/* ==================== Photo Viewer ==================== */
+.photo-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+.photo-viewer.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ==================== Backdrop ==================== */
+.viewer-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    cursor: pointer;
+    animation: backdropFadeIn 0.4s ease;
+}
+
+@keyframes backdropFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0);
+        -webkit-backdrop-filter: blur(0);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(20px)) {
+    .viewer-backdrop {
+        background: rgba(0, 0, 0, 0.9);
+    }
+}
+
+/* ==================== Photo Card ==================== */
+.photo-card {
+    position: relative;
+    width: 90vw;
+    max-width: 600px;
+    aspect-ratio: 1;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* 3D Tilt Effect */
+.photo-card[data-tilt] {
+    transform: perspective(1000px) 
+                rotateX(var(--rotate-x, 0deg)) 
+                rotateY(var(--rotate-y, 0deg))
+                translateZ(0);
+}
+
+/* ==================== Photo Inner ==================== */
+.photo-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    background: white;
+    transform: translateZ(50px);
+    border: 4px solid white;
+}
+
+.photo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* ==================== Holographic Overlay ==================== */
+.holographic-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        var(--shine-angle, 45deg),
+        transparent 20%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 80%
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.photo-card:hover .holographic-overlay {
+    opacity: 1;
+}
+
+/* Rainbow reflection effect on edges */
+.photo-inner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        var(--shine-angle, 45deg),
+        transparent,
+        rgba(255, 105, 180, 0.3),
+        rgba(138, 43, 226, 0.3),
+        rgba(75, 0, 130, 0.3),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+.photo-card:hover .photo-inner::after {
+    opacity: 0.6;
+}
+
+/* Shimmer glow effect */
+.photo-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 30px rgba(255, 105, 180, 0.3);
+    pointer-events: none;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.photo-card:hover .photo-inner::before {
+    opacity: 1;
+}
+
+/* ==================== Photo Timestamp ==================== */
+.photo-timestamp {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6),
+                 0 0 10px rgba(255, 105, 180, 0.5);
+    transform: rotate(-8deg) translateZ(60px);
+    letter-spacing: 1px;
+    pointer-events: none;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    animation: timestampFadeIn 0.6s ease 0.3s both;
+}
+
+@keyframes timestampFadeIn {
+    from {
+        opacity: 0;
+        transform: rotate(-8deg) translateZ(60px) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(-8deg) translateZ(60px) translateY(0);
+    }
+}
+
+/* ==================== Viewer Animations ==================== */
+@keyframes viewerEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes viewerExit {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+/* ==================== Enhanced Tilt Effects ==================== */
+.photo-card.tilting {
+    transition: none;
+}
+
+/* Edge highlights based on tilt direction */
+.photo-inner {
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        calc(var(--rotate-y, 0deg) * 0.5) calc(var(--rotate-x, 0deg) * -0.5) 20px rgba(255, 105, 180, 0.3);
+}
+
+/* ==================== Mobile Optimizations ==================== */
+@media (max-width: 768px) {
+    .photo-card {
+        width: 95vw;
+        max-width: none;
+    }
+    
+    .photo-timestamp {
+        font-size: 1.2rem;
+        bottom: 15px;
+        right: 15px;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .photo-inner {
+        border-radius: 15px;
+        border-width: 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    .photo-timestamp {
+        font-size: 1rem;
+        bottom: 10px;
+        right: 10px;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .photo-inner {
+        border-radius: 12px;
+        border-width: 2px;
+    }
+}
+
+/* ==================== Touch Device Optimizations ==================== */
+@media (hover: none) and (pointer: coarse) {
+    /* Remove hover effects on touch devices */
+    .photo-card:hover .holographic-overlay,
+    .photo-card:hover .photo-inner::after,
+    .photo-card:hover .photo-inner::before {
+        opacity: 0;
+    }
+    
+    /* Show effects on active state instead */
+    .photo-card:active .holographic-overlay,
+    .photo-card:active .photo-inner::after {
+        opacity: 0.8;
+    }
+}
+
+/* ==================== Performance Optimizations ==================== */
+.photo-viewer *,
+.photo-viewer *::before,
+.photo-viewer *::after {
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    perspective: 1000;
+}
+
+/* Hardware acceleration */
+.photo-card,
+.photo-inner,
+.holographic-overlay {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
