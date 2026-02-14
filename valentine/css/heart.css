@@ -21,7 +21,7 @@
 .photo-item {
     position: absolute;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;
     cursor: pointer;
     transition: all 0.3s var(--transition-smooth);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -35,11 +35,63 @@
     z-index: 10 !important;
 }
 
+.photo-item .photo-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 9px;
+    overflow: hidden;
+    position: relative;
+}
+
 .photo-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+/* ==================== Delete Button ==================== */
+.delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ff4444;
+    border: 2px solid white;
+    color: white;
+    font-size: 16px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s var(--transition-smooth);
+    z-index: 20;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.photo-item:hover .delete-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.delete-btn:hover {
+    background: #cc0000;
+    transform: scale(1.15);
+}
+
+.delete-btn:active {
+    transform: scale(0.95);
+}
+
+/* Mobile: Show delete button on long press */
+@media (hover: none) and (pointer: coarse) {
+    .photo-item.show-delete .delete-btn {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* ==================== Photo Placeholder ==================== */

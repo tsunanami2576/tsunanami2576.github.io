@@ -25,9 +25,9 @@ const Config = {
             const stored = localStorage.getItem(this.STORAGE_KEY);
             if (stored) {
                 this.config = JSON.parse(stored);
-                // Decrypt token if needed (basic encoding for storage)
+                // Decrypt token if needed (Unicode-safe encoding)
                 if (this.config.token) {
-                    this.config.token = atob(this.config.token);
+                    this.config.token = this.base64Decode(this.config.token);
                 }
             }
         } catch (error) {
@@ -41,10 +41,10 @@ const Config = {
      */
     saveConfig(configData) {
         try {
-            // Encode token for storage (basic security)
+            // Encode token for storage (Unicode-safe encoding)
             const toStore = {
                 ...configData,
-                token: btoa(configData.token)
+                token: this.base64Encode(configData.token)
             };
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toStore));
             this.config = configData;
@@ -53,6 +53,25 @@ const Config = {
             console.error('Failed to save config:', error);
             return false;
         }
+    },
+    
+    /**
+     * Unicode-safe Base64 encode
+     */
+    base64Encode(str) {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+            function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+    },
+    
+    /**
+     * Unicode-safe Base64 decode
+     */
+    base64Decode(str) {
+        return decodeURIComponent(atob(str).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
     },
     
     /**

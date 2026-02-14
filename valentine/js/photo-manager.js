@@ -20,22 +20,64 @@ const PhotoManager = {
         const fileInput = document.getElementById('fileInput');
         const heartContainer = document.getElementById('heartContainer');
         
-        // Handle placeholder clicks
+        // Handle placeholder clicks and photo interactions
         heartContainer.addEventListener('click', (e) => {
+            // Handle delete button clicks
+            if (e.target.closest('.delete-btn')) {
+                e.stopPropagation();
+                const photoItem = e.target.closest('.photo-item');
+                if (photoItem) {
+                    const index = parseInt(photoItem.dataset.index);
+                    this.deletePhoto(index);
+                }
+                return;
+            }
+            
+            // Handle placeholder clicks
             const placeholder = e.target.closest('.photo-placeholder');
             if (placeholder) {
                 this.currentUploadIndex = parseInt(placeholder.dataset.index);
                 fileInput.click();
+                return;
             }
             
-            // Handle photo clicks for viewer
+            // Handle photo clicks for viewer (only if not clicking delete)
             const photoItem = e.target.closest('.photo-item');
-            if (photoItem) {
+            if (photoItem && !photoItem.classList.contains('show-delete')) {
                 const index = parseInt(photoItem.dataset.index);
                 const photo = this.photos[index];
                 if (photo) {
                     PhotoViewer.show(photo);
                 }
+            }
+        });
+        
+        // Long press for mobile delete
+        let longPressTimer;
+        heartContainer.addEventListener('touchstart', (e) => {
+            const photoItem = e.target.closest('.photo-item');
+            if (photoItem) {
+                longPressTimer = setTimeout(() => {
+                    photoItem.classList.add('show-delete');
+                    navigator.vibrate && navigator.vibrate(50);
+                }, 500);
+            }
+        });
+        
+        heartContainer.addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+        });
+        
+        heartContainer.addEventListener('touchmove', () => {
+            clearTimeout(longPressTimer);
+        });
+        
+        // Close delete mode when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.photo-item')) {
+                document.querySelectorAll('.photo-item.show-delete').forEach(item => {
+                    item.classList.remove('show-delete');
+                });
             }
         });
         
@@ -209,14 +251,73 @@ const PhotoManager = {
             photoItem.style.top = `${position.y}px`;
             photoItem.dataset.index = photo.index;
             
+            // Photo wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'photo-wrapper';
+            
             const img = document.createElement('img');
             img.src = photo.url;
             img.alt = photo.displayDate;
             
-            photoItem.appendChild(img);
+            // Delete button
+            const deleteBtn = document.createElement('div');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.title = '删除照片';
+            
+            wrapper.appendChild(img);
+            photoItem.appendChild(wrapper);
+            photoItem.appendChild(deleteBtn);
             
             // Replace placeholder
             container.replaceChild(photoItem, placeholder);
+        }
+    },
+    
+    /**
+     * Delete photo
+     */
+    async deletePhoto(index) {
+        const photo = this.photos[index];
+        if (!photo) return;
+        
+        // Confirm deletion
+        if (!confirm(`确定要删除这张照片吗？\n拍摄于：${photo.displayDate}`)) {
+            return;
+        }
+        
+        try {
+            this.showLoading('正在删除照片...');
+            
+            // Remove from photos array
+            delete this.photos[index];
+            
+            // Update metadata on GitHub
+            await GitHubAPI.updatePhotosMetadata(this.photos);
+            
+            // Replace photo with placeholder
+            const container = document.getElementById('heartContainer');
+            const photoItem = container.querySelector(`[data-index="${index}"]`);
+            
+            if (photoItem) {
+                const position = HeartLayout.getPosition(index);
+                
+                const placeholder = document.createElement('div');
+                placeholder.className = `photo-placeholder ${position.size}`;
+                placeholder.style.left = `${position.x}px`;
+                placeholder.style.top = `${position.y}px`;
+                placeholder.dataset.index = index;
+                
+                container.replaceChild(placeholder, photoItem);
+            }
+            
+            this.hideLoading();
+            this.showToast('✓ 照片已删除', 'success');
+            
+        } catch (error) {
+            console.error('Delete failed:', error);
+            this.hideLoading();
+            this.showToast('删除失败: ' + error.message, 'error');
         }
     },
     

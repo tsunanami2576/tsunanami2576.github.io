@@ -105,7 +105,7 @@ const HeartLayout = {
         
         // Heart equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
         const eq = Math.pow(nx * nx + ny * ny - 1, 3) - nx * nx * ny * ny * ny;
-        return eq <= 0.5; // Add small tolerance
+        return eq <= 2.0; // Increased tolerance for better coverage
     },
     
     /**
@@ -113,8 +113,8 @@ const HeartLayout = {
      */
     generatePhotoPositions() {
         const positions = [];
-        const numPhotos = 15; // Target number of photos
-        const margin = 10; // Minimum margin between photos
+        const numPhotos = 25; // Target number of photos (increased)
+        const margin = 5; // Minimum margin between photos (reduced)
         
         // Determine size for each photo based on weights
         const photoSizes = [];
@@ -139,18 +139,23 @@ const HeartLayout = {
             const size = photoSizes[i];
             let placed = false;
             let attempts = 0;
-            const maxAttempts = 100;
+            const maxAttempts = 300; // Increased attempts
             
             while (!placed && attempts < maxAttempts) {
                 // Random position
                 const x = Math.random() * (this.containerSize - size.width);
                 const y = Math.random() * (this.containerSize - size.height);
                 
-                // Check if photo center is inside heart
+                // Check if photo corners and center are inside heart
                 const centerX = x + size.width / 2;
                 const centerY = y + size.height / 2;
                 
-                if (this.isInsideHeart(centerX, centerY)) {
+                // Check center and at least 2 corners
+                const inCenter = this.isInsideHeart(centerX, centerY);
+                const inTopLeft = this.isInsideHeart(x + size.width * 0.2, y + size.height * 0.2);
+                const inBottomRight = this.isInsideHeart(x + size.width * 0.8, y + size.height * 0.8);
+                
+                if (inCenter && (inTopLeft || inBottomRight)) {
                     // Check for collisions with existing photos
                     let hasCollision = false;
                     
