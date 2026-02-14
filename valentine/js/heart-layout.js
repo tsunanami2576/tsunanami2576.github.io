@@ -97,7 +97,7 @@ const HeartLayout = {
     isInsideHeart(x, y) {
         const centerX = this.containerSize / 2;
         const centerY = this.containerSize / 2.2;
-        const scale = this.containerSize / 6;
+        const scale = this.containerSize / 5.5; // Increased scale for larger heart
         
         // Normalize coordinates
         const nx = (x - centerX) / scale;
@@ -105,7 +105,7 @@ const HeartLayout = {
         
         // Heart equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
         const eq = Math.pow(nx * nx + ny * ny - 1, 3) - nx * nx * ny * ny * ny;
-        return eq <= 2.0; // Increased tolerance for better coverage
+        return eq <= 5.0; // Much larger tolerance for better coverage
     },
     
     /**
@@ -113,12 +113,32 @@ const HeartLayout = {
      */
     generatePhotoPositions() {
         const positions = [];
-        const numPhotos = 25; // Target number of photos (increased)
-        const margin = 5; // Minimum margin between photos (reduced)
+        const targetPhotos = 20; // More realistic target
+        const gridSize = 20; // Grid resolution for scanning
         
-        // Determine size for each photo based on weights
+        // Create a grid of candidate positions
+        const candidates = [];
+        for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+                const x = (i / gridSize) * this.containerSize;
+                const y = (j / gridSize) * this.containerSize;
+                
+                // Check if this grid point is inside the heart
+                if (this.isInsideHeart(x, y)) {
+                    candidates.push({ x, y });
+                }
+            }
+        }
+        
+        // Shuffle candidates for randomness
+        for (let i = candidates.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        }
+        
+        // Determine sizes for target number of photos
         const photoSizes = [];
-        for (let i = 0; i < numPhotos; i++) {
+        for (let i = 0; i < targetPhotos; i++) {
             const rand = Math.random();
             let cumulativeWeight = 0;
             
@@ -134,61 +154,74 @@ const HeartLayout = {
         // Sort by size (large first for better packing)
         photoSizes.sort((a, b) => b.width - a.width);
         
-        // Try to place each photo
-        for (let i = 0; i < photoSizes.length; i++) {
-            const size = photoSizes[i];
+        // Try to place each photo using grid candidates
+        for (const size of photoSizes) {
             let placed = false;
-            let attempts = 0;
-            const maxAttempts = 300; // Increased attempts
             
-            while (!placed && attempts < maxAttempts) {
-                // Random position
-                const x = Math.random() * (this.containerSize - size.width);
-                const y = Math.random() * (this.containerSize - size.height);
+            // Try each candidate position
+            for (const candidate of candidates) {
+                // Adjust position to try to center the photo
+                const x = candidate.x - size.width / 2;
+                const y = candidate.y - size.height / 2;
                 
-                // Check if photo corners and center are inside heart
-                const centerX = x + size.width / 2;
-                const centerY = y + size.height / 2;
+                // Ensure photo is within bounds
+                if (x < 0 || y < 0 || 
+                    x + size.width > this.containerSize || 
+                    y + size.height > this.containerSize) {
+                    continue;
+                }
                 
-                // Check center and at least 2 corners
-                const inCenter = this.isInsideHeart(centerX, centerY);
-                const inTopLeft = this.isInsideHeart(x + size.width * 0.2, y + size.height * 0.2);
-                const inBottomRight = this.isInsideHeart(x + size.width * 0.8, y + size.height * 0.8);
+                // Check if all four corners are inside heart
+                const corners = [
+                    [x + size.width * 0.2, y + size.height * 0.2],
+                    [x + size.width * 0.8, y + size.height * 0.2],
+                    [x + size.width * 0.2, y + size.height * 0.8],
+                    [x + size.width * 0.8, y + size.height * 0.8]
+                ];
                 
-                if (inCenter && (inTopLeft || inBottomRight)) {
-                    // Check for collisions with existing photos
-                    let hasCollision = false;
-                    
-                    for (const pos of positions) {
-                        if (this.rectanglesOverlap(
-                            x, y, size.width, size.height,
-                            pos.x, pos.y, pos.width, pos.height,
-                            margin
-                        )) {
-                            hasCollision = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!hasCollision) {
-                        positions.push({
-                            x,
-                            y,
-                            width: size.width,
-                            height: size.height,
-                            size: size.name,
-                            index: positions.length
-                        });
-                        placed = true;
+                const allCornersInside = corners.every(([cx, cy]) => 
+                    this.isInsideHeart(cx, cy)
+                );
+                
+                if (!allCornersInside) {
+                    continue;
+                }
+                
+                // Check for collisions with existing photos
+                let hasCollision = false;
+                const margin = 8;
+                
+                for (const pos of positions) {
+                    if (this.rectanglesOverlap(
+                        x, y, size.width, size.height,
+                        pos.x, pos.y, pos.width, pos.height,
+                        margin
+                    )) {
+                        hasCollision = true;
+                        break;
                     }
                 }
                 
-                attempts++;
+                if (!hasCollision) {
+                    positions.push({
+                        x,
+                        y,
+                        width: size.width,
+                        height: size.height,
+                        size: size.name,
+                        index: positions.length
+                    });
+                    placed = true;
+                    break;
+                }
             }
+            
+            // If we couldn't place this photo, that's okay
+            // We'll have as many as we can fit
         }
         
         this.positions = positions;
-        console.log(`Generated ${positions.length} photo positions`);
+        console.log(`✓ Generated ${positions.length} photo positions in heart shape`);
     },
     
     /**

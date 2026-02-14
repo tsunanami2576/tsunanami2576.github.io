@@ -3,6 +3,22 @@
  * Handles file uploads and management via GitHub API
  */
 const GitHubAPI = {
+    
+    /**
+     * Unicode-safe Base64 encode
+     */
+    base64Encode(str) {
+        try {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                function(match, p1) {
+                    return String.fromCharCode('0x' + p1);
+                }));
+        } catch (e) {
+            // Fallback for very large strings
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+    },
+    
     /**
      * Upload a file to GitHub repository
      */
@@ -37,7 +53,7 @@ const GitHubAPI = {
             // Prepare request body
             const body = {
                 message,
-                content: isBase64 ? content : btoa(content),
+                content: isBase64 ? content : this.base64Encode(content),
                 branch: 'main' // or 'master', adjust as needed
             };
             
