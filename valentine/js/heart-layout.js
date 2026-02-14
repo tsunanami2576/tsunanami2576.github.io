@@ -116,26 +116,26 @@ const HeartLayout = {
         // rx, ry: relative center coordinates (0.0 to 1.0)
         // rw: relative width/height scale
         const heartTemplate = [
-            { rx: 0.50, ry: 0.45, rw: 0.22 }, // 0. Center (Largest, main focus)
-            { rx: 0.30, ry: 0.38, rw: 0.18 }, // 1. Mid-Left inner
-            { rx: 0.70, ry: 0.38, rw: 0.18 }, // 2. Mid-Right inner
-            { rx: 0.35, ry: 0.18, rw: 0.16 }, // 3. Top-Left lobe
-            { rx: 0.65, ry: 0.18, rw: 0.16 }, // 4. Top-Right lobe
-            { rx: 0.50, ry: 0.25, rw: 0.16 }, // 5. Top Center dip
-            { rx: 0.20, ry: 0.28, rw: 0.15 }, // 6. Far Top-Left
-            { rx: 0.80, ry: 0.28, rw: 0.15 }, // 7. Far Top-Right
-            { rx: 0.15, ry: 0.45, rw: 0.14 }, // 8. Far Left edge
-            { rx: 0.85, ry: 0.45, rw: 0.14 }, // 9. Far Right edge
-            { rx: 0.40, ry: 0.58, rw: 0.18 }, // 10. Lower-Left inner
-            { rx: 0.60, ry: 0.58, rw: 0.18 }, // 11. Lower-Right inner
-            { rx: 0.25, ry: 0.60, rw: 0.15 }, // 12. Lower-Left outer
-            { rx: 0.75, ry: 0.60, rw: 0.15 }, // 13. Lower-Right outer
-            { rx: 0.50, ry: 0.72, rw: 0.18 }, // 14. Bottom center core
-            { rx: 0.35, ry: 0.75, rw: 0.14 }, // 15. Bottom-Left taper
-            { rx: 0.65, ry: 0.75, rw: 0.14 }, // 16. Bottom-Right taper
-            { rx: 0.43, ry: 0.83, rw: 0.12 }, // 17. Tip transition Left
-            { rx: 0.57, ry: 0.83, rw: 0.12 }, // 18. Tip transition Right
-            { rx: 0.50, ry: 0.90, rw: 0.15 }  // 19. Absolute Bottom tip
+            { rx: 0.50, ry: 0.45, rw: 0.187 }, // 0. Center (Largest, main focus) - 0.22*0.85
+            { rx: 0.30, ry: 0.38, rw: 0.153 }, // 1. Mid-Left inner - 0.18*0.85
+            { rx: 0.70, ry: 0.38, rw: 0.153 }, // 2. Mid-Right inner - 0.18*0.85
+            { rx: 0.35, ry: 0.18, rw: 0.136 }, // 3. Top-Left lobe - 0.16*0.85
+            { rx: 0.65, ry: 0.18, rw: 0.136 }, // 4. Top-Right lobe - 0.16*0.85
+            { rx: 0.50, ry: 0.25, rw: 0.136 }, // 5. Top Center dip - 0.16*0.85
+            { rx: 0.20, ry: 0.28, rw: 0.1275 }, // 6. Far Top-Left - 0.15*0.85
+            { rx: 0.80, ry: 0.28, rw: 0.1275 }, // 7. Far Top-Right - 0.15*0.85
+            { rx: 0.15, ry: 0.45, rw: 0.119 }, // 8. Far Left edge - 0.14*0.85
+            { rx: 0.85, ry: 0.45, rw: 0.119 }, // 9. Far Right edge - 0.14*0.85
+            { rx: 0.40, ry: 0.58, rw: 0.153 }, // 10. Lower-Left inner - 0.18*0.85
+            { rx: 0.60, ry: 0.58, rw: 0.153 }, // 11. Lower-Right inner - 0.18*0.85
+            { rx: 0.25, ry: 0.60, rw: 0.1275 }, // 12. Lower-Left outer - 0.15*0.85
+            { rx: 0.75, ry: 0.60, rw: 0.1275 }, // 13. Lower-Right outer - 0.15*0.85
+            { rx: 0.50, ry: 0.72, rw: 0.153 }, // 14. Bottom center core - 0.18*0.85
+            { rx: 0.35, ry: 0.75, rw: 0.119 }, // 15. Bottom-Left taper - 0.14*0.85
+            { rx: 0.65, ry: 0.75, rw: 0.119 }, // 16. Bottom-Right taper - 0.14*0.85
+            { rx: 0.43, ry: 0.83, rw: 0.102 }, // 17. Tip transition Left - 0.12*0.85
+            { rx: 0.57, ry: 0.83, rw: 0.102 }, // 18. Tip transition Right - 0.12*0.85
+            { rx: 0.50, ry: 0.90, rw: 0.1275 }  // 19. Absolute Bottom tip - 0.15*0.85
         ];
 
         const positions = [];
@@ -158,7 +158,8 @@ const HeartLayout = {
                 height: sizePx,
                 size: 'medium', // Default size for compatibility
                 index: i,
-                zIndex: i === 0 ? 10 : 1 // Ensure center photo stays on top
+                zIndex: i === 0 ? 10 : 1, // Ensure center photo stays on top
+                rotation: (Math.random() - 0.5) * 30 // Random rotation between -15 and +15 degrees
             });
         }
         

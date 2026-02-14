@@ -6,6 +6,14 @@ const Config = {
     // Storage keys
     STORAGE_KEY: 'valentine_config',
     
+    // Default configuration (hardcoded for public access)
+    DEFAULT_CONFIG: {
+        username: 'tsunanami2576',
+        repo: 'tsunanami2576.github.io',
+        photoPath: 'valentine/assets/photos',
+        token: 'ghp_YOUR_TOKEN_HERE' // Replace with your actual token
+    },
+    
     // Configuration state
     config: null,
     
@@ -29,10 +37,14 @@ const Config = {
                 if (this.config.token) {
                     this.config.token = this.base64Decode(this.config.token);
                 }
+            } else {
+                // Use default config if nothing stored
+                this.config = { ...this.DEFAULT_CONFIG };
             }
         } catch (error) {
             console.error('Failed to load config:', error);
-            this.config = null;
+            // Fallback to default config
+            this.config = { ...this.DEFAULT_CONFIG };
         }
     },
     

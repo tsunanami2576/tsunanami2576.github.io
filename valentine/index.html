@@ -123,12 +123,9 @@
             PhotoManager.init();
             PhotoViewer.init();
             
-            // Check for saved configuration
-            if (!Config.isConfigured()) {
-                Config.showConfigModal();
-            } else {
-                PhotoManager.loadPhotos();
-            }
+            // Always load photos directly (skip config modal)
+            // Config uses DEFAULT_CONFIG if localStorage is empty
+            PhotoManager.loadPhotos();
         });
     </script>
 </body>

@@ -249,6 +249,7 @@ const PhotoManager = {
             photoItem.className = `photo-item photo-${position.size}`;
             photoItem.style.left = `${position.x}px`;
             photoItem.style.top = `${position.y}px`;
+            photoItem.style.transform = `rotate(${position.rotation}deg)`;
             photoItem.dataset.index = photo.index;
             
             // Photo wrapper
@@ -256,7 +257,8 @@ const PhotoManager = {
             wrapper.className = 'photo-wrapper';
             
             const img = document.createElement('img');
-            img.src = photo.url;
+            // Add cache-busting parameter to prevent refresh issues
+            img.src = photo.url + (photo.url.includes('?') ? '&' : '?') + 't=' + Date.now();
             img.alt = photo.displayDate;
             
             // Delete button
