@@ -66,6 +66,7 @@ const PhotoViewer = {
             const rect = sourceElement.getBoundingClientRect();
             // 注意：GSAP 现在只动画外层的 Wrapper
             gsap.set(this.photoCardWrapper, {
+                clearProps: 'all', // 清除所有 GSAP 属性，避免冲突
                 left: rect.left,
                 top: rect.top,
                 width: rect.width,
@@ -73,6 +74,11 @@ const PhotoViewer = {
                 opacity: 0,
                 xPercent: 0,
                 yPercent: 0
+            });
+        } else {
+            gsap.set(this.photoCardWrapper, {
+                clearProps: 'all',
+                opacity: 0
             });
         }
         
@@ -124,8 +130,10 @@ const PhotoViewer = {
         if (targetElement) {
             const rect = targetElement.getBoundingClientRect();
             tl.to(this.photoCardWrapper, {
-                x: rect.left,
-                y: rect.top,
+                left: rect.left,
+                top: rect.top,
+                xPercent: 0,
+                yPercent: 0,
                 width: rect.width,
                 height: rect.height,
                 opacity: 0,
