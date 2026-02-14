@@ -1,149 +1,110 @@
 /**
- * Photo Viewer with 3D Effects
- * Handles photo viewing with tilt and holographic effects
+ * Photo Viewer with 3D Holographic Effects
  */
 const PhotoViewer = {
     currentPhoto: null,
     isOpen: false,
+    maxTilt: 20, // 20度是比较优雅的物理倾斜极限
     
-    // Enhanced tilt settings
-    maxTilt: 25, // Increased from 15 for stronger effect
-    
-    // Elements
     viewer: null,
-    photoCard: null,
+    photoCardWrapper: null,
+    photoCardInner: null,
     photoImage: null,
     photoTimestamp: null,
     backdrop: null,
-    holographicOverlay: null,
     
-    /**
-     * Initialize photo viewer
-     */
     init() {
         this.viewer = document.getElementById('photoViewer');
-        this.photoCard = this.viewer.querySelector('.photo-card');
+        this.photoCardWrapper = this.viewer.querySelector('.photo-card-wrapper');
+        this.photoCardInner = this.viewer.querySelector('.photo-card-inner');
         this.photoImage = this.viewer.querySelector('.photo-image');
         this.photoTimestamp = this.viewer.querySelector('.photo-timestamp');
         this.backdrop = this.viewer.querySelector('.viewer-backdrop');
-        this.holographicOverlay = this.viewer.querySelector('.holographic-overlay');
         
         this.attachEventHandlers();
     },
     
-    /**
-     * Attach event handlers
-     */
     attachEventHandlers() {
-        // Mouse move for tilt effect
-        this.photoCard.addEventListener('mousemove', (e) => {
-            this.photoCard.classList.add('tilting');
-            this.handleTilt(e);
-        });
-        
-        // Touch move for mobile tilt
-        this.photoCard.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            this.photoCard.classList.add('tilting');
-            this.handleTilt(e.touches[0]);
-        });
-        
-        // Reset tilt on mouse leave
-        this.photoCard.addEventListener('mouseleave', () => {
-            this.photoCard.classList.remove('tilting');
-            this.resetTilt();
-        });
-        
-        // Reset tilt on touch end
-        this.photoCard.addEventListener('touchend', () => {
-            this.photoCard.classList.remove('tilting');
-            this.resetTilt();
-        });
-        
-        // Close on backdrop click
-        this.backdrop.addEventListener('click', () => {
-            this.hide();
-        });
-        
-        // Close on photo click
-        this.photoCard.addEventListener('click', () => {
-            this.hide();
-        });
-        
-        // Close on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.hide();
+        // 使用 window 的鼠标移动，这样即使鼠标移出卡片一点也能保持丝滑
+        window.addEventListener('mousemove', (e) => {
+            if (this.isOpen && !this.photoCardInner.classList.contains('resetting')) {
+                this.handleTilt(e);
             }
+        });
+        
+        this.photoCardInner.addEventListener('touchmove', (e) => {
+            if (this.isOpen) {
+                e.preventDefault();
+                this.handleTilt(e.touches[0]);
+            }
+        });
+        
+        this.photoCardInner.addEventListener('mouseleave', () => this.resetTilt());
+        this.photoCardInner.addEventListener('touchend', () => this.resetTilt());
+        this.backdrop.addEventListener('click', () => this.hide());
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) this.hide();
         });
     },
     
-    /**
-     * Show photo in viewer
-     */
     show(photo) {
         this.currentPhoto = photo;
         this.isOpen = true;
-        
-        // Set photo
         this.photoImage.src = photo.url;
-        this.photoTimestamp.textContent = photo.displayDate;
+        this.photoTimestamp.textContent = photo.displayDate || 'Our Memory';
         
-        // Get source element for animation
         const sourceElement = document.querySelector(`[data-index="${photo.index}"]`);
+        
+        // 重置 3D 状态
+        this.photoCardInner.classList.add('resetting');
+        this.photoCardInner.style.setProperty('--rotate-x', '0deg');
+        this.photoCardInner.style.setProperty('--rotate-y', '0deg');
+        this.photoCardInner.style.setProperty('--scale', 1);
         
         if (sourceElement) {
             const rect = sourceElement.getBoundingClientRect();
-            
-            // Set initial position
-            gsap.set(this.photoCard, {
-                x: rect.left + rect.width / 2 - window.innerWidth / 2,
-                y: rect.top + rect.height / 2 - window.innerHeight / 2,
-                scale: Math.min(rect.width / 600, rect.height / 600),
+            // 注意：GSAP 现在只动画外层的 Wrapper
+            gsap.set(this.photoCardWrapper, {
+                x: rect.left,
+                y: rect.top,
+                width: rect.width,
+                height: rect.height,
                 opacity: 0
             });
         }
         
-        // Show viewer
         this.viewer.classList.remove('hidden');
         
-        // Animate entry
-        const tl = gsap.timeline();
+        const tl = gsap.timeline({
+            onComplete: () => {
+                this.photoCardInner.classList.remove('resetting'); // 动画结束，允许 3D 交互
+            }
+        });
         
-        tl.to(this.backdrop, {
-            opacity: 1,
-            duration: 0.4,
-            ease: 'power2.out'
-        }, 0);
+        tl.to(this.backdrop, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
         
-        tl.to(this.photoCard, {
-            x: 0,
-            y: 0,
-            scale: 1,
+        // 计算居中位置并展开外层 Wrapper
+        tl.to(this.photoCardWrapper, {
+            x: window.innerWidth / 2 - 200, // 假设大图宽度 400px (一半是 200)
+            y: window.innerHeight / 2 - 250, // 假设大图高度 500px
+            width: 400,
+            height: 500,
             opacity: 1,
             duration: 0.6,
-            ease: 'power3.out'
+            ease: 'back.out(1.2)' // 带一点点回弹效果更生动
         }, 0);
         
-        // Prevent body scroll
         document.body.style.overflow = 'hidden';
     },
     
-    /**
-     * Hide viewer
-     */
     hide() {
         if (!this.isOpen) return;
-        
         this.isOpen = false;
-        
-        // Reset tilt
         this.resetTilt();
         
-        // Get target element for animation
         const targetElement = document.querySelector(`[data-index="${this.currentPhoto.index}"]`);
         
-        // Animate exit
         const tl = gsap.timeline({
             onComplete: () => {
                 this.viewer.classList.add('hidden');
@@ -151,91 +112,63 @@ const PhotoViewer = {
             }
         });
         
-        tl.to(this.backdrop, {
-            opacity: 0,
-            duration: 0.3,
-            ease: 'power2.in'
-        }, 0);
+        tl.to(this.backdrop, { opacity: 0, duration: 0.3, ease: 'power2.in' }, 0);
         
         if (targetElement) {
             const rect = targetElement.getBoundingClientRect();
-            
-            tl.to(this.photoCard, {
-                x: rect.left + rect.width / 2 - window.innerWidth / 2,
-                y: rect.top + rect.height / 2 - window.innerHeight / 2,
-                scale: Math.min(rect.width / 600, rect.height / 600),
+            tl.to(this.photoCardWrapper, {
+                x: rect.left,
+                y: rect.top,
+                width: rect.width,
+                height: rect.height,
                 opacity: 0,
                 duration: 0.4,
-                ease: 'power2.in'
+                ease: 'power2.inOut'
             }, 0);
         } else {
-            tl.to(this.photoCard, {
-                scale: 0.8,
-                opacity: 0,
-                duration: 0.3,
-                ease: 'power2.in'
-            }, 0);
+            tl.to(this.photoCardWrapper, { opacity: 0, scale: 0.8, duration: 0.3 }, 0);
         }
         
-        // Restore body scroll
         document.body.style.overflow = '';
     },
     
-    /**
-     * Handle tilt effect based on mouse/touch position
-     */
     handleTilt(event) {
-        if (!this.isOpen) return;
+        const rect = this.photoCardInner.getBoundingClientRect();
+        // 计算鼠标相对卡片中心的偏移百分比 (-1 到 1)
+        const xPercent = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+        const yPercent = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
         
-        const rect = this.photoCard.getBoundingClientRect();
-        
-        // Get mouse/touch position relative to card
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        
-        // Normalize to [-1, 1]
-        const xPercent = (x / rect.width - 0.5) * 2;
-        const yPercent = (y / rect.height - 0.5) * 2;
-        
-        // Calculate rotation with stronger effect
+        // 映射角度 (鼠标在右边，卡片向右转，即 rotateY 为正；鼠标在下边，卡片向下转，即 rotateX 为负)
         const rotateY = xPercent * this.maxTilt;
         const rotateX = -yPercent * this.maxTilt;
         
-        // Calculate shine angle for holographic effect
-        const shineAngle = Math.atan2(yPercent, xPercent) * 180 / Math.PI;
+        // 光斑位置映射 (0% 到 100%)
+        const shineX = ((event.clientX - rect.left) / rect.width) * 100;
+        const shineY = ((event.clientY - rect.top) / rect.height) * 100;
         
-        // Calculate shine position (0 to 100%)
-        const shineX = ((xPercent + 1) / 2) * 100;
-        const shineY = ((yPercent + 1) / 2) * 100;
-        
-        // Apply transforms with enhanced depth
-        this.photoCard.style.setProperty('--rotate-x', `${rotateX}deg`);
-        this.photoCard.style.setProperty('--rotate-y', `${rotateY}deg`);
-        this.photoCard.style.setProperty('--shine-angle', `${shineAngle}deg`);
-        this.photoCard.style.setProperty('--shine-x', `${shineX}%`);
-        this.photoCard.style.setProperty('--shine-y', `${shineY}%`);
-        
-        // Enhanced scale effect for depth
+        // 放大效果：鼠标越靠近边缘，卡片极其轻微放大
         const distance = Math.sqrt(xPercent * xPercent + yPercent * yPercent);
-        const scale = 1 + (distance * 0.02); // Subtle scale increase
-        this.photoCard.style.setProperty('--scale', scale);
+        const scale = 1 + (distance * 0.03); 
+        
+        // 将变量注入内层容器
+        this.photoCardInner.style.setProperty('--rotate-x', `${rotateX}deg`);
+        this.photoCardInner.style.setProperty('--rotate-y', `${rotateY}deg`);
+        this.photoCardInner.style.setProperty('--shine-x', `${shineX}%`);
+        this.photoCardInner.style.setProperty('--shine-y', `${shineY}%`);
+        this.photoCardInner.style.setProperty('--scale', scale);
     },
     
-    /**
-     * Reset tilt to default position
-     */
     resetTilt() {
-        this.photoCard.classList.remove('tilting');
+        this.photoCardInner.classList.add('resetting');
+        this.photoCardInner.style.setProperty('--rotate-x', '0deg');
+        this.photoCardInner.style.setProperty('--rotate-y', '0deg');
+        this.photoCardInner.style.setProperty('--shine-x', '50%');
+        this.photoCardInner.style.setProperty('--shine-y', '50%');
+        this.photoCardInner.style.setProperty('--scale', 1);
         
-        gsap.to(this.photoCard, {
-            '--rotate-x': '0deg',
-            '--rotate-y': '0deg',
-            '--shine-angle': '45deg',
-            '--shine-x': '50%',
-            '--shine-y': '50%',
-            '--scale': 1,
-            duration: 0.5,
-            ease: 'power2.out'
-        });
+        // 移除 resetting 类以便下次能够无缝跟手
+        setTimeout(() => {
+            if(this.photoCardInner) this.photoCardInner.classList.remove('resetting');
+        }, 500);
     }
 };
