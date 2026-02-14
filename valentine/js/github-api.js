@@ -178,7 +178,7 @@ const GitHubAPI = {
     },
     
     /**
-     * Load photos metadata
+     * Load photos metadata (public access, no token required for reading)
      */
     async loadPhotosMetadata() {
         const config = Config.getConfig();
@@ -187,11 +187,30 @@ const GitHubAPI = {
         }
         
         try {
-            const metadataPath = `${config.photoPath}/photos.json`;
-            const file = await this.getFile(metadataPath);
+            // Try public raw URL first (no authentication needed)
+            const { username, repo, photoPath } = config;
+            const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/${photoPath}/photos.json`;
+            const response = await fetch(rawUrl + '?t=' + Date.now());
             
-            if (file && file.content) {
-                return JSON.parse(file.content);
+            if (response.ok) {
+                const photos = await response.json();
+                // Add cache-busting to image URLs
+                return photos.map(photo => {
+                    if (photo && photo.url) {
+                        photo.url = photo.url + (photo.url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                    }
+                    return photo;
+                });
+            }
+            
+            // Fallback to API with token if available
+            if (config.token) {
+                const metadataPath = `${photoPath}/photos.json`;
+                const file = await this.getFile(metadataPath);
+                
+                if (file && file.content) {
+                    return JSON.parse(file.content);
+                }
             }
             
             return [];

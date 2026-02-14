@@ -22,9 +22,14 @@ const PhotoManager = {
         
         // Handle placeholder clicks and photo interactions
         heartContainer.addEventListener('click', (e) => {
-            // Handle delete button clicks
+            // Handle delete button clicks (requires token)
             if (e.target.closest('.delete-btn')) {
                 e.stopPropagation();
+                if (!Config.canUpload()) {
+                    this.showToast('需要配置 GitHub Token 才能删除照片', 'error');
+                    Config.showConfigModal();
+                    return;
+                }
                 const photoItem = e.target.closest('.photo-item');
                 if (photoItem) {
                     const index = parseInt(photoItem.dataset.index);
@@ -33,9 +38,14 @@ const PhotoManager = {
                 return;
             }
             
-            // Handle placeholder clicks
+            // Handle placeholder clicks (requires token for upload)
             const placeholder = e.target.closest('.photo-placeholder');
             if (placeholder) {
+                if (!Config.canUpload()) {
+                    this.showToast('需要配置 GitHub Token 才能上传照片', 'error');
+                    Config.showConfigModal();
+                    return;
+                }
                 this.currentUploadIndex = parseInt(placeholder.dataset.index);
                 fileInput.click();
                 return;
@@ -324,13 +334,9 @@ const PhotoManager = {
     },
     
     /**
-     * Load photos from GitHub
+     * Load photos from GitHub (works in read-only mode without token)
      */
     async loadPhotos() {
-        if (!Config.isConfigured()) {
-            return;
-        }
-        
         try {
             this.showLoading('正在加载照片...');
             

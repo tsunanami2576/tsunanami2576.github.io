@@ -6,12 +6,12 @@ const Config = {
     // Storage keys
     STORAGE_KEY: 'valentine_config',
     
-    // Default configuration (hardcoded for public access)
+    // Default read-only configuration (for viewing photos)
     DEFAULT_CONFIG: {
         username: 'tsunanami2576',
         repo: 'tsunanami2576.github.io',
         photoPath: 'valentine/assets/photos',
-        token: 'ghp_YOUR_TOKEN_HERE' // Replace with your actual token
+        token: null // No token for read-only mode
     },
     
     // Configuration state
@@ -92,8 +92,14 @@ const Config = {
     isConfigured() {
         return this.config && 
                this.config.username && 
-               this.config.repo && 
-               this.config.token;
+               this.config.repo;
+    },
+    
+    /**
+     * Check if user has upload permission (has token)
+     */
+    canUpload() {
+        return this.config && this.config.token;
     },
     
     /**
