@@ -52,48 +52,21 @@
     }
 }
 
-/* ==================== Photo Card ==================== */
+/* ==================== Photo Card (Legacy - for compatibility) ==================== */
 .photo-card {
-    position: relative;
-    width: 90vw;
-    max-width: 600px;
-    aspect-ratio: 1;
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    will-change: transform;
-    cursor: pointer;
-    z-index: 1;
+    /* 旧版兼容性保留 */
 }
 
-/* Enhanced 3D Tilt Effect */
-.photo-card[data-tilt] {
-    transform: perspective(1200px) 
-                rotateX(var(--rotate-x, 0deg)) 
-                rotateY(var(--rotate-y, 0deg))
-                scale(var(--scale, 1))
-                translateZ(0);
+/* ==================== Photo Card Wrapper ==================== */
+.photo-card-wrapper {
+    position: absolute;
+    perspective: 1200px; /* 3D 景深 */
+    z-index: 100;
 }
 
-/* Smooth transitions when tilting */
-.photo-card.tilting {
-    transition: none;
-}
-
-/* ==================== Photo Inner ==================== */
+/* ==================== Photo Inner (旧版兼容) ==================== */
 .photo-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 
-        0 25px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.15),
-        calc(var(--rotate-y, 0deg) * 1px) calc(var(--rotate-x, 0deg) * -1px) 30px rgba(255, 105, 180, 0.5);
-    background: white;
-    transform: translateZ(50px);
-    border: 4px solid white;
-    transition: box-shadow 0.3s ease;
+    /* 保留旧版样式以防冲突 */
 }
 
 .photo-image {
@@ -345,8 +318,8 @@
     transform-style: preserve-3d;
     /* 应用 JS 计算的角度 */
     transform: rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg)) scale(var(--scale, 1));
-    /* 平滑过渡，消除鼠标微小抖动 */
-    transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* 增加过渡时间，更加平滑 */
+    transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     will-change: transform;
 }
 
@@ -377,7 +350,10 @@
 /* 增强图片本身的质感 */
 .photo-image {
     width: 100%;
-    height: auto;
-    object-fit: contain;
-    border: 1px solid rgba(0,0,0,0.1);
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    border-radius: 4px;
 }

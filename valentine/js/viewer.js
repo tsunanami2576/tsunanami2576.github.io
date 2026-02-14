@@ -4,7 +4,7 @@
 const PhotoViewer = {
     currentPhoto: null,
     isOpen: false,
-    maxTilt: 20, // 20度是比较优雅的物理倾斜极限
+    maxTilt: 15, // 降低到15度，更加优雅
     
     viewer: null,
     photoCardWrapper: null,
@@ -84,15 +84,20 @@ const PhotoViewer = {
         
         tl.to(this.backdrop, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
         
-        // 计算居中位置并展开外层 Wrapper
+        // 居中显示，使用百分比和transform
+        const viewerCenterX = window.innerWidth / 2;
+        const viewerCenterY = window.innerHeight / 2;
+        const cardWidth = Math.min(window.innerWidth * 0.85, 500);
+        const cardHeight = cardWidth * 1.25; // 宽高比1:1.25
+        
         tl.to(this.photoCardWrapper, {
-            x: window.innerWidth / 2 - 200, // 假设大图宽度 400px (一半是 200)
-            y: window.innerHeight / 2 - 250, // 假设大图高度 500px
-            width: 400,
-            height: 500,
+            x: viewerCenterX - cardWidth / 2,
+            y: viewerCenterY - cardHeight / 2,
+            width: cardWidth,
+            height: cardHeight,
             opacity: 1,
             duration: 0.6,
-            ease: 'back.out(1.2)' // 带一点点回弹效果更生动
+            ease: 'back.out(1.2)'
         }, 0);
         
         document.body.style.overflow = 'hidden';
@@ -134,6 +139,13 @@ const PhotoViewer = {
     
     handleTilt(event) {
         const rect = this.photoCardInner.getBoundingClientRect();
+        
+        // 限制在卡片范围内才响应
+        if (event.clientX < rect.left || event.clientX > rect.right ||
+            event.clientY < rect.top || event.clientY > rect.bottom) {
+            return;
+        }
+        
         // 计算鼠标相对卡片中心的偏移百分比 (-1 到 1)
         const xPercent = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
         const yPercent = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
@@ -146,9 +158,9 @@ const PhotoViewer = {
         const shineX = ((event.clientX - rect.left) / rect.width) * 100;
         const shineY = ((event.clientY - rect.top) / rect.height) * 100;
         
-        // 放大效果：鼠标越靠近边缘，卡片极其轻微放大
+        // 轻微放大效果
         const distance = Math.sqrt(xPercent * xPercent + yPercent * yPercent);
-        const scale = 1 + (distance * 0.03); 
+        const scale = 1 + (distance * 0.02); 
         
         // 将变量注入内层容器
         this.photoCardInner.style.setProperty('--rotate-x', `${rotateX}deg`);
